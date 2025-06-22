@@ -245,7 +245,7 @@ export default function ResumeForm({
           </button>
         </div>
         <div className="flex gap-3">
-          {Object.entries(colorThemes).map(([color], index) => (
+          {Object.entries(colorThemes).map(([color]) => (
             <button
               key={color}
               className="w-8 h-8 rounded-full"
