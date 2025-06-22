@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import puppeteer from 'puppeteer';
+import puppeteer from 'puppeteer-core';
+import chromium from '@sparticuz/chromium';
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,8 +11,8 @@ export async function POST(request: NextRequest) {
     }
 
     const browser = await puppeteer.launch({
-      headless: true,
       args: [
+        ...chromium.args,
         '--no-sandbox',
         '--disable-setuid-sandbox',
         '--disable-dev-shm-usage',
@@ -20,7 +21,10 @@ export async function POST(request: NextRequest) {
         '--no-zygote',
         '--single-process',
         '--disable-gpu'
-      ]
+      ],
+      executablePath: await chromium.executablePath(),
+      headless: true,
+      defaultViewport: null
     });
 
     const page = await browser.newPage();
