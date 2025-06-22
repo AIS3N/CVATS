@@ -1,103 +1,117 @@
-import Image from "next/image";
+'use client';
+
+import { useState, useEffect } from 'react';
+import ResumeForm from '@/components/ResumeForm';
+import ResumePreview from '@/components/ResumePreview';
+import { ResumeData, initialResumeData } from '@/types/resume';
+ import { GB, FR } from 'country-flag-icons/react/3x2';
+
+// Translation objects
+const translations = {
+  en: {
+    title: "ATS-Friendly Resume Generator",
+    colorTheme: "Color Theme",
+    personal: "Personal",
+    experience: "Experience",
+    education: "Education",
+    skills: "Skills",
+    references: "References",
+    personalInfo: "Personal Information",
+    fullName: "Full Name",
+    jobTitle: "Job Title",
+    email: "Email",
+    phone: "Phone",
+    address: "Address",
+    summary: "Professional Summary",
+    photo: "Photo",
+    lightMode: "Light Mode",
+    darkMode: "Dark Mode"
+  },
+  fr: {
+    title: "Générateur de CV Compatible ATS",
+    colorTheme: "Thème de Couleur",
+    personal: "Personnel",
+    experience: "Expérience",
+    education: "Éducation",
+    skills: "Compétences",
+    references: "Références",
+    personalInfo: "Informations Personnelles",
+    fullName: "Nom Complet",
+    jobTitle: "Titre du Poste",
+    email: "Email",
+    phone: "Téléphone",
+    address: "Adresse",
+    summary: "Résumé Professionnel",
+    photo: "Photo",
+    lightMode: "Mode Clair",
+    darkMode: "Mode Sombre"
+  }
+};
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [resumeData, setResumeData] = useState<ResumeData>(initialResumeData);
+  const [activeColor, setActiveColor] = useState('blue');
+  const [darkMode, setDarkMode] = useState(false);
+  const [language, setLanguage] = useState<'en' | 'fr'>('en');
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+  // Switch between Dark and Light Mode
+  useEffect(() => {
+    document.documentElement.classList.remove('dark-mode', 'light-mode');
+    if (darkMode) {
+      document.documentElement.classList.add('dark-mode');
+    } else {
+      document.documentElement.classList.add('light-mode');
+    }
+  }, [darkMode]);
+
+  const t = translations[language];
+
+  return (
+    <main className="min-h-screen p-4 md:p-8 bg-[var(--background)] text-[var(--foreground)]">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold">{t.title}</h1>
+          
+          {/* Language Toggle Button */}
+          <button
+            onClick={() => setLanguage(language === 'en' ? 'fr' : 'en')}
+            className="w-12 h-12 rounded-full overflow-hidden border-2 transition-colors shadow-md flex items-center justify-center"
+            style={{borderColor: '#d1d5db'}}
+            onMouseEnter={(e) => e.currentTarget.style.borderColor = '#9ca3af'}
+            onMouseLeave={(e) => e.currentTarget.style.borderColor = '#d1d5db'}
+            aria-label={`Current language: ${language === 'en' ? 'English' : 'French'}`}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+            {language === 'en' ? (
+              <GB title="Switch to French" className="w-full h-full rounded-full object-cover" />
+            ) : (
+              <FR title="Switch to English" className="w-full h-full rounded-full object-cover" />
+            )}
+          </button>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+        
+        <div className="flex flex-col lg:flex-row gap-8">
+          <div className="w-full lg:w-1/2">
+            <ResumeForm 
+              resumeData={resumeData} 
+              setResumeData={setResumeData} 
+              activeColor={activeColor}
+              setActiveColor={setActiveColor}
+              darkMode={darkMode}
+              setDarkMode={setDarkMode}
+              language={language}
+              translations={t}
+            />
+          </div>
+          
+          <div className="w-full lg:w-1/2 sticky top-8">
+            <ResumePreview 
+              resumeData={resumeData} 
+              activeColor={activeColor}
+              language={language}
+            />
+          </div>
+        </div>
+      </div>
+    </main>
   );
 }

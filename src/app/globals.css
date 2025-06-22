@@ -3,6 +3,8 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --placeholder-color: #4b5563;
+  --heading-color: #111827;
 }
 
 @theme inline {
@@ -13,14 +15,151 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not(.dark-mode):not(.light-mode) {
     --background: #0a0a0a;
     --foreground: #ededed;
+    --placeholder-color: #9ca3af;
+    --heading-color: #f9fafb;
   }
+}
+
+:root.dark-mode {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  --placeholder-color: #9ca3af;
+  --heading-color: #f9fafb;
+}
+
+:root.light-mode {
+  --background: #ffffff;
+  --foreground: #171717;
+  --placeholder-color: #4b5563;
+  --heading-color: #111827;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Placeholder styling */
+::placeholder {
+  color: var(--placeholder-color) !important;
+  opacity: 1 !important;
+  font-weight: 500 !important;
+}
+
+:-ms-input-placeholder {
+  color: var(--placeholder-color) !important;
+  opacity: 1 !important;
+  font-weight: 500 !important;
+}
+
+::-ms-input-placeholder {
+  color: var(--placeholder-color) !important;
+  opacity: 1 !important;
+  font-weight: 500 !important;
+}
+
+div h1, div h2 {
+  color: var(--heading-color) !important;
+}
+
+.bg-white h1, .bg-white h2 {
+  color: var(--heading-color) !important;
+  font-weight: 700 !important;
+}
+
+[ref="resumeRef"] h1 {
+  color: var(--heading-color) !important;
+  font-weight: 700 !important;
+  font-size: 1.5rem !important;
+}
+
+[ref="resumeRef"] h2 {
+  color: var(--heading-color) !important;
+  font-weight: 600 !important;
+  font-size: 1.25rem !important;
+}
+
+@media print {
+  * {
+    -webkit-print-color-adjust: exact !important;
+    color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  
+  .bg-white {
+    background-color: white !important;
+  }
+  
+  p, span, div, h1, h2, h3, h4, h5, h6 {
+    color: inherit !important;
+  }
+  
+  [class*="bg-blue-"] {
+    background-color: #dbeafe !important;
+  }
+  
+  [class*="bg-green-"] {
+    background-color: #dcfce7 !important;
+  }
+  
+  [class*="bg-purple-"] {
+    background-color: #f3e8ff !important;
+  }
+  
+  [class*="bg-red-"] {
+    background-color: #fee2e2 !important;
+  }
+  
+  [class*="bg-gray-"] {
+    background-color: #e5e7eb !important;
+  }
+  
+  [class*="bg-indigo-"] {
+    background-color: #e0e7ff !important;
+  }
+  
+  [class*="bg-teal-"] {
+    background-color: #ccfbf1 !important;
+  }
+  
+  [class*="bg-orange-"] {
+    background-color: #fed7aa !important;
+  }
+  
+  [class*="bg-pink-"] {
+    background-color: #fce7f3 !important;
+  }
+  
+  [class*="bg-cyan-"] {
+    background-color: #cffafe !important;
+  }
+  
+  [class*="bg-emerald-"] {
+    background-color: #d1fae5 !important;
+  }
+  
+  [class*="bg-slate-"] {
+    background-color: #e2e8f0 !important;
+  }
+  
+  [class*="bg-amber-"] {
+    background-color: #fef3c7 !important;
+  }
+  
+  [class*="bg-lime-"] {
+    background-color: #ecfccb !important;
+  }
+  
+  [class*="bg-rose-"] {
+    background-color: #ffe4e6 !important;
+  }
 }
