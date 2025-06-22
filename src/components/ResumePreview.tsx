@@ -71,7 +71,7 @@ export default function ResumePreview({ resumeData, activeColor, language }: Res
             return Array.from(sheet.cssRules)
               .map(rule => rule.cssText)
               .join('\n');
-          } catch (_e) {
+          } catch {
             return '';
           }
         })
