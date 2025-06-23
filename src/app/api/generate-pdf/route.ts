@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
   let puppeteerCore: any = null;
 
   // Check if we're in Vercel environment
-  const isVercel = process.env.VERCEL || process.env.NODE_ENV === 'production';
+  const isVercel = process.env.VERCEL === '1' || process.env.VERCEL_ENV;
 
   if (isVercel) {
     try {
@@ -17,8 +17,10 @@ export async function POST(request: NextRequest) {
       const puppeteerCoreModule = await import('puppeteer-core');
       chromium = chromiumModule.default || chromiumModule;
       puppeteerCore = puppeteerCoreModule.default || puppeteerCoreModule;
-    } catch {
-      console.warn('Vercel dependencies not found, falling back to regular puppeteer');
+      console.log('Successfully loaded Vercel dependencies');
+    } catch (error) {
+      console.error('Failed to load Vercel dependencies:', error);
+      throw new Error('Vercel dependencies required but not available');
     }
   }
   try {
@@ -30,8 +32,11 @@ export async function POST(request: NextRequest) {
 
     let browser;
     
-    if (isVercel && chromium && puppeteerCore) {
+    if (isVercel) {
       // Vercel environment with chromium
+      if (!chromium || !puppeteerCore) {
+        throw new Error('Chromium dependencies not loaded for Vercel environment');
+      }
       browser = await puppeteerCore.launch({
         args: [
           ...chromium.args,
@@ -48,6 +53,7 @@ export async function POST(request: NextRequest) {
         headless: true,
         defaultViewport: null
       });
+      console.log('Launched browser with Chromium on Vercel');
     } else {
       // Local development environment
       browser = await puppeteer.launch({
