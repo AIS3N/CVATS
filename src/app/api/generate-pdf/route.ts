@@ -11,6 +11,7 @@ export async function POST(request: NextRequest) {
 
     const browser = await puppeteer.launch({
       headless: true,
+      executablePath: `/usr/bin/google-chrome`,
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
