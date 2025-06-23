@@ -333,6 +333,7 @@ export default function ResumePreview({ resumeData, activeColor, language }: Res
       
       <div 
         ref={resumeRef}
+        data-resume-ref="true"
         className="border rounded-lg overflow-hidden bg-white" 
         style={{ 
           maxWidth: '800px', 

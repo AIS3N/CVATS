@@ -62,7 +62,7 @@ body {
   font-weight: 500 !important;
 }
 
-div h1, div h2 {
+div h1, div h2, div h3 {
   color: var(--heading-color) !important;
 }
 
@@ -71,16 +71,59 @@ div h1, div h2 {
   font-weight: 700 !important;
 }
 
-[ref="resumeRef"] h1 {
-  color: var(--heading-color) !important;
+.bg-gray-50 h2.text-white {
+  color: white !important;
+}
+
+.dark\:bg-gray-800 h2.dark\:text-gray-100 {
+  color: rgb(243 244 246) !important;
+}
+
+/* Override h1 and h2 only when they inherit theme-dependent colors */
+.text-\[var\(--foreground\)\] [data-resume-ref="true"] h1 {
+  color: inherit !important;
   font-weight: 700 !important;
   font-size: 1.5rem !important;
 }
 
-[ref="resumeRef"] h2 {
-  color: var(--heading-color) !important;
+.text-\[var\(--foreground\)\] [data-resume-ref="true"] h2 {
+  color: inherit !important;
   font-weight: 600 !important;
   font-size: 1.25rem !important;
+}
+
+/* Fallback for h1 and h2 that don't have user-selected colors */
+[data-resume-ref="true"] h1:not([class*="text-"]) {
+  color: #111827 !important;
+}
+
+[data-resume-ref="true"] h2:not([class*="text-"]) {
+  color: #111827 !important;
+}
+
+/* Override only theme-dependent CSS variables in resume preview */
+/* Target the parent container with text-[var(--foreground)] that contains the resume */
+.text-\[var\(--foreground\)\] [data-resume-ref="true"] {
+  color: #111827 !important;
+}
+
+/* Override any inherited foreground color variable within resume preview */
+[data-resume-ref="true"] {
+  color: #111827 !important;
+}
+
+/* Ensure specific gray text classes remain consistent */
+[data-resume-ref="true"] .text-gray-600 {
+  color: #4b5563 !important;
+}
+
+[data-resume-ref="true"] .text-gray-500 {
+  color: #6b7280 !important;
+}
+
+/* Override background variable to ensure white background */
+[data-resume-ref="true"] .bg-\[var\(--background\)\] {
+  background-color: white !important;
 }
 
 @media print {

@@ -217,32 +217,8 @@ export default function ResumeForm({
   return (
     <div className="p-6 rounded-lg shadow-md bg-[var(--background)] text-[var(--foreground)]">
       <div className="mb-6">
-        <div className="flex justify-between items-center mb-4">
+        <div className="mb-6">
           <h2 className="text-xl font-semibold">{t.colorTheme}</h2>
-          <button
-            onClick={() => setDarkMode(!darkMode)}
-            className="flex items-center px-3 py-2 rounded-md transition-colors"
-        style={{backgroundColor: '#f3f4f6'}}
-        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#e5e7eb'}
-        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
-            aria-label="Toggle dark mode"
-          >
-            {darkMode ? (
-              <>
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                </svg>
-                <span>{t.lightMode}</span>
-              </>
-            ) : (
-              <>
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                </svg>
-                <span>{t.darkMode}</span>
-              </>
-            )}
-          </button>
         </div>
         <div className="flex gap-3">
           {Object.entries(colorThemes).map(([color]) => (
@@ -329,9 +305,10 @@ export default function ResumeForm({
       {activeTab === 'personal' && (
         <div>
           <h2 className="text-xl font-semibold mb-4">{t.personalInfo}</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div className="mb-6 p-4 border rounded" style={{backgroundColor: darkMode ? '#374151' : '#f9fafb'}}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
-              <label className="block text-sm font-medium mb-1" style={{color: '#374151'}}>{t.fullName}</label>
+              <label className="block text-sm font-medium mb-1" style={{color: darkMode ? '#f9fafb' : '#374151'}}>{t.fullName}</label>
               <input
                 type="text"
                 className="w-full p-2 border rounded focus:outline-none"
@@ -343,7 +320,7 @@ export default function ResumeForm({
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1" style={{color: '#374151'}}>{t.jobTitle}</label>
+              <label className="block text-sm font-medium mb-1" style={{color: darkMode ? '#f9fafb' : '#374151'}}>{t.jobTitle}</label>
               <input
                 type="text"
                 className="w-full p-2 border rounded focus:outline-none"
@@ -355,7 +332,7 @@ export default function ResumeForm({
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1" style={{color: '#374151'}}>Email</label>
+              <label className="block text-sm font-medium mb-1" style={{color: darkMode ? '#f9fafb' : '#374151'}}>Email</label>
               <input
                 type="email"
                 className="w-full p-2 border rounded focus:outline-none"
@@ -367,7 +344,7 @@ export default function ResumeForm({
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1" style={{color: '#374151'}}>{t.phone}</label>
+              <label className="block text-sm font-medium mb-1" style={{color: darkMode ? '#f9fafb' : '#374151'}}>{t.phone}</label>
               <input
                 type="tel"
                 className="w-full p-2 border rounded focus:outline-none"
@@ -379,7 +356,7 @@ export default function ResumeForm({
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1" style={{color: '#374151'}}>{t.address}</label>
+              <label className="block text-sm font-medium mb-1" style={{color: darkMode ? '#f9fafb' : '#374151'}}>{t.address}</label>
               <input
                 type="text"
                 className="w-full p-2 border rounded focus:outline-none"
@@ -391,7 +368,7 @@ export default function ResumeForm({
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1" style={{color: '#374151'}}>Website/LinkedIn</label>
+              <label className="block text-sm font-medium mb-1" style={{color: darkMode ? '#f9fafb' : '#374151'}}>Website/LinkedIn</label>
               <input
                 type="url"
                 className="w-full p-2 border rounded focus:outline-none"
@@ -403,7 +380,7 @@ export default function ResumeForm({
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1" style={{color: '#374151'}}>{language === 'en' ? 'Photo' : 'Photo'}</label>
+              <label className="block text-sm font-medium mb-1" style={{color: darkMode ? '#f9fafb' : '#374151'}}>{language === 'en' ? 'Photo' : 'Photo'}</label>
               <input
                 type="file"
                 accept="image/*"
@@ -443,7 +420,7 @@ export default function ResumeForm({
             </div>
           </div>
           <div className="mb-4">
-            <label className="block text-sm font-medium mb-1" style={{color: '#374151'}}>{t.summary}</label>
+            <label className="block text-sm font-medium mb-1" style={{color: darkMode ? '#f9fafb' : '#374151'}}>{t.summary}</label>
             <textarea
                     className="w-full p-2 border rounded focus:outline-none"
                      onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
@@ -453,6 +430,7 @@ export default function ResumeForm({
               onChange={(e) => updatePersonalInfo('summary', e.target.value)}
               placeholder={language === 'en' ? 'Experienced software engineer with a passion for developing innovative solutions...' : 'Ingenieur logiciel expérimenté passionné par la création de solutions innovantes...'}
             />
+          </div>
           </div>
         </div>
       )}
@@ -471,7 +449,7 @@ export default function ResumeForm({
           </div>
           
           {resumeData.experiences.map((exp, index) => (
-            <div key={exp.id} className="mb-6 p-4 border rounded" style={{backgroundColor: '#f9fafb'}}>
+            <div key={exp.id} className="mb-6 p-4 border rounded" style={{backgroundColor: darkMode ? '#374151' : '#f9fafb'}}>
               <div className="flex justify-between items-center mb-3">
                 <h3 className="font-medium">Experience {index + 1}</h3>
                 {resumeData.experiences.length > 1 && (
@@ -603,7 +581,7 @@ export default function ResumeForm({
           </div>
           
           {resumeData.education.map((edu, index) => (
-            <div key={edu.id} className="mb-6 p-4 border rounded" style={{backgroundColor: '#f9fafb'}}>
+            <div key={edu.id} className="mb-6 p-4 border rounded" style={{backgroundColor: darkMode ? '#374151' : '#f9fafb'}}>
               <div className="flex justify-between items-center mb-3">
                 <h3 className="font-medium">Education {index + 1}</h3>
                 {resumeData.education.length > 1 && (
@@ -711,7 +689,7 @@ export default function ResumeForm({
           </div>
           
           {resumeData.skills.map((skill, index) => (
-            <div key={skill.id} className="mb-4 p-4 border rounded" style={{backgroundColor: '#f9fafb'}}>
+            <div key={skill.id} className="mb-4 p-4 border rounded" style={{backgroundColor: darkMode ? '#374151' : '#f9fafb'}}>
               <div className="flex justify-between items-center mb-3">
                 <div className="flex-grow">
                   <input
@@ -770,7 +748,7 @@ export default function ResumeForm({
           </div>
           
           {resumeData.references.map((reference, index) => (
-            <div key={reference.id} className="mb-6 p-4 border rounded" style={{backgroundColor: '#f9fafb'}}>
+            <div key={reference.id} className="mb-6 p-4 border rounded" style={{backgroundColor: darkMode ? '#374151' : '#f9fafb'}}>
               <div className="flex justify-between items-center mb-3">
                 <h3 className="font-medium">Reference {index + 1}</h3>
                 {resumeData.references.length > 1 && (
