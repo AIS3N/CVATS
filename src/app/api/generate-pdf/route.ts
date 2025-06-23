@@ -2,6 +2,25 @@ import { NextRequest, NextResponse } from 'next/server';
 import puppeteer from 'puppeteer';
 
 export async function POST(request: NextRequest) {
+  // Dynamic imports for Vercel environment
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let chromium: any = null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let puppeteerCore: any = null;
+
+  // Check if we're in Vercel environment
+  const isVercel = process.env.VERCEL || process.env.NODE_ENV === 'production';
+
+  if (isVercel) {
+    try {
+      const chromiumModule = await import('@sparticuz/chromium');
+      const puppeteerCoreModule = await import('puppeteer-core');
+      chromium = chromiumModule.default || chromiumModule;
+      puppeteerCore = puppeteerCoreModule.default || puppeteerCoreModule;
+    } catch {
+      console.warn('Vercel dependencies not found, falling back to regular puppeteer');
+    }
+  }
   try {
     const { html, css, filename } = await request.json();
     
@@ -9,20 +28,42 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'HTML content is required' }, { status: 400 });
     }
 
-    const browser = await puppeteer.launch({
-      headless: true,
-      executablePath: `/usr/bin/google-chrome`,
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-accelerated-2d-canvas',
-        '--no-first-run',
-        '--no-zygote',
-        '--single-process',
-        '--disable-gpu'
-      ]
-    });
+    let browser;
+    
+    if (isVercel && chromium && puppeteerCore) {
+      // Vercel environment with chromium
+      browser = await puppeteerCore.launch({
+        args: [
+          ...chromium.args,
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-accelerated-2d-canvas',
+          '--no-first-run',
+          '--no-zygote',
+          '--single-process',
+          '--disable-gpu'
+        ],
+        executablePath: await chromium.executablePath(),
+        headless: true,
+        defaultViewport: null
+      });
+    } else {
+      // Local development environment
+      browser = await puppeteer.launch({
+        headless: true,
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-accelerated-2d-canvas',
+          '--no-first-run',
+          '--no-zygote',
+          '--single-process',
+          '--disable-gpu'
+        ]
+      });
+    }
 
     const page = await browser.newPage();
     
