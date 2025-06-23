@@ -1,12 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import puppeteer from 'puppeteer';
 
-export async function POST(request: NextRequest) {
-  // Dynamic imports for Vercel environment
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let chromium: any = null;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let puppeteerCore: any = null;
+export async function POST(request: Request) {
 
   // Check if we're in Vercel environment
   const isVercel = process.env.VERCEL === '1' || 
@@ -21,26 +16,6 @@ export async function POST(request: NextRequest) {
     NODE_ENV: process.env.NODE_ENV,
     isVercel
   });
-
-  if (isVercel) {
-    try {
-      const chromiumModule = await import('@sparticuz/chromium');
-      const puppeteerCoreModule = await import('puppeteer-core');
-      chromium = chromiumModule.default || chromiumModule;
-      puppeteerCore = puppeteerCoreModule.default || puppeteerCoreModule;
-      
-      // Force chromium to initialize fonts if available
-      if (chromium.font) {
-        await chromium.font('https://fonts.gstatic.com/s/noto/v20/NotoSans-Regular.ttf');
-      }
-      
-      console.log('Successfully loaded Vercel dependencies');
-      console.log('Chromium version:', chromium.version || 'unknown');
-    } catch (error) {
-      console.error('Failed to load Vercel dependencies:', error);
-      throw new Error('Vercel dependencies required but not available');
-    }
-  }
   try {
     const { html, css, filename } = await request.json();
     
@@ -50,63 +25,35 @@ export async function POST(request: NextRequest) {
 
     let browser;
     
-    if (isVercel) {
-      // Vercel environment with chromium
-      if (!chromium || !puppeteerCore) {
-        throw new Error('Chromium dependencies not loaded for Vercel environment');
-      }
-      
-      try {
-        console.log('Attempting to get chromium executable path...');
-        const executablePath = await chromium.executablePath();
-        console.log('Chromium executable path:', executablePath);
-        
-        browser = await puppeteerCore.launch({
-          args: [
-            ...chromium.args,
-            '--no-sandbox',
-            '--disable-setuid-sandbox',
-            '--disable-dev-shm-usage',
-            '--disable-accelerated-2d-canvas',
-            '--no-first-run',
-            '--no-zygote',
-            '--single-process',
-            '--disable-gpu'
-          ],
-          executablePath,
-          headless: true,
-          defaultViewport: null
-        });
-        console.log('Successfully launched browser with Chromium on Vercel');
-      } catch (chromiumError) {
-        console.error('Failed to launch with Chromium, trying fallback:', chromiumError);
-        // Fallback to regular puppeteer
-        browser = await puppeteer.launch({
-          headless: true,
-          args: [
-            '--no-sandbox',
-            '--disable-setuid-sandbox',
-            '--disable-dev-shm-usage'
-          ]
-        });
-        console.log('Launched browser with fallback puppeteer');
-      }
-    } else {
-      // Local development environment
-      browser = await puppeteer.launch({
-        headless: true,
-        args: [
-          '--no-sandbox',
-          '--disable-setuid-sandbox',
-          '--disable-dev-shm-usage',
-          '--disable-accelerated-2d-canvas',
-          '--no-first-run',
-          '--no-zygote',
-          '--single-process',
-          '--disable-gpu'
-        ]
-      });
-    }
+    // Use regular puppeteer with Vercel-optimized configuration
+    const launchOptions = {
+      headless: true,
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--no-first-run',
+        '--no-zygote',
+        '--single-process',
+        '--disable-gpu',
+        '--disable-background-timer-throttling',
+        '--disable-backgrounding-occluded-windows',
+        '--disable-renderer-backgrounding',
+        '--disable-features=TranslateUI',
+        '--disable-ipc-flooding-protection'
+      ],
+      // Vercel-specific optimizations
+      ...(isVercel && {
+        timeout: 30000,
+        protocolTimeout: 30000,
+        defaultViewport: { width: 1280, height: 720 }
+      })
+    };
+    
+    console.log(`Launching browser in ${isVercel ? 'Vercel' : 'local'} environment`);
+    browser = await puppeteer.launch(launchOptions);
+    console.log('Browser launched successfully');
 
     const page = await browser.newPage();
     
