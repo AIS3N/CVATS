@@ -9,7 +9,18 @@ export async function POST(request: NextRequest) {
   let puppeteerCore: any = null;
 
   // Check if we're in Vercel environment
-  const isVercel = process.env.VERCEL === '1' || process.env.VERCEL_ENV;
+  const isVercel = process.env.VERCEL === '1' || 
+                   process.env.VERCEL_ENV || 
+                   process.env.VERCEL_URL || 
+                   process.env.NODE_ENV === 'production';
+  
+  console.log('Environment check:', {
+    VERCEL: process.env.VERCEL,
+    VERCEL_ENV: process.env.VERCEL_ENV,
+    VERCEL_URL: process.env.VERCEL_URL,
+    NODE_ENV: process.env.NODE_ENV,
+    isVercel
+  });
 
   if (isVercel) {
     try {
@@ -17,7 +28,14 @@ export async function POST(request: NextRequest) {
       const puppeteerCoreModule = await import('puppeteer-core');
       chromium = chromiumModule.default || chromiumModule;
       puppeteerCore = puppeteerCoreModule.default || puppeteerCoreModule;
+      
+      // Force chromium to initialize fonts if available
+      if (chromium.font) {
+        await chromium.font('https://fonts.gstatic.com/s/noto/v20/NotoSans-Regular.ttf');
+      }
+      
       console.log('Successfully loaded Vercel dependencies');
+      console.log('Chromium version:', chromium.version || 'unknown');
     } catch (error) {
       console.error('Failed to load Vercel dependencies:', error);
       throw new Error('Vercel dependencies required but not available');
@@ -37,23 +55,42 @@ export async function POST(request: NextRequest) {
       if (!chromium || !puppeteerCore) {
         throw new Error('Chromium dependencies not loaded for Vercel environment');
       }
-      browser = await puppeteerCore.launch({
-        args: [
-          ...chromium.args,
-          '--no-sandbox',
-          '--disable-setuid-sandbox',
-          '--disable-dev-shm-usage',
-          '--disable-accelerated-2d-canvas',
-          '--no-first-run',
-          '--no-zygote',
-          '--single-process',
-          '--disable-gpu'
-        ],
-        executablePath: await chromium.executablePath(),
-        headless: true,
-        defaultViewport: null
-      });
-      console.log('Launched browser with Chromium on Vercel');
+      
+      try {
+        console.log('Attempting to get chromium executable path...');
+        const executablePath = await chromium.executablePath();
+        console.log('Chromium executable path:', executablePath);
+        
+        browser = await puppeteerCore.launch({
+          args: [
+            ...chromium.args,
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-accelerated-2d-canvas',
+            '--no-first-run',
+            '--no-zygote',
+            '--single-process',
+            '--disable-gpu'
+          ],
+          executablePath,
+          headless: true,
+          defaultViewport: null
+        });
+        console.log('Successfully launched browser with Chromium on Vercel');
+      } catch (chromiumError) {
+        console.error('Failed to launch with Chromium, trying fallback:', chromiumError);
+        // Fallback to regular puppeteer
+        browser = await puppeteer.launch({
+          headless: true,
+          args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage'
+          ]
+        });
+        console.log('Launched browser with fallback puppeteer');
+      }
     } else {
       // Local development environment
       browser = await puppeteer.launch({
