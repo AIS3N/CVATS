@@ -3,19 +3,7 @@ import puppeteer from 'puppeteer';
 
 export async function POST(request: Request) {
 
-  // Check if we're in Vercel environment
-  const isVercel = process.env.VERCEL === '1' || 
-                   process.env.VERCEL_ENV || 
-                   process.env.VERCEL_URL || 
-                   process.env.NODE_ENV === 'production';
-  
-  console.log('Environment check:', {
-    VERCEL: process.env.VERCEL,
-    VERCEL_ENV: process.env.VERCEL_ENV,
-    VERCEL_URL: process.env.VERCEL_URL,
-    NODE_ENV: process.env.NODE_ENV,
-    isVercel
-  });
+
   try {
     const { html, css, filename } = await request.json();
     
@@ -23,8 +11,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'HTML content is required' }, { status: 400 });
     }
 
-    // Use regular puppeteer with Vercel-optimized configuration
-    const launchOptions = {
+
+    
+    console.log('Launching browser with puppeteer');
+    const browser = await puppeteer.launch({
       headless: true,
       args: [
         '--no-sandbox',
@@ -34,23 +24,9 @@ export async function POST(request: Request) {
         '--no-first-run',
         '--no-zygote',
         '--single-process',
-        '--disable-gpu',
-        '--disable-background-timer-throttling',
-        '--disable-backgrounding-occluded-windows',
-        '--disable-renderer-backgrounding',
-        '--disable-features=TranslateUI',
-        '--disable-ipc-flooding-protection'
-      ],
-      // Vercel-specific optimizations
-      ...(isVercel && {
-        timeout: 30000,
-        protocolTimeout: 30000,
-        defaultViewport: { width: 1280, height: 720 }
-      })
-    };
-    
-    console.log(`Launching browser in ${isVercel ? 'Vercel' : 'local'} environment`);
-    const browser = await puppeteer.launch(launchOptions);
+        '--disable-gpu'
+      ]
+    });
     console.log('Browser launched successfully');
 
     const page = await browser.newPage();
