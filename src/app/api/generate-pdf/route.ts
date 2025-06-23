@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import puppeteer from 'puppeteer';
 
 export async function POST(request: Request) {
@@ -23,8 +23,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'HTML content is required' }, { status: 400 });
     }
 
-    let browser;
-    
     // Use regular puppeteer with Vercel-optimized configuration
     const launchOptions = {
       headless: true,
@@ -52,7 +50,7 @@ export async function POST(request: Request) {
     };
     
     console.log(`Launching browser in ${isVercel ? 'Vercel' : 'local'} environment`);
-    browser = await puppeteer.launch(launchOptions);
+    const browser = await puppeteer.launch(launchOptions);
     console.log('Browser launched successfully');
 
     const page = await browser.newPage();
