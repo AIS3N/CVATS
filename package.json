@@ -26,12 +26,12 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "tailwindcss": "^4",
+    "autoprefixer": "^10.4.22",
     "typescript": "^5"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@types/puppeteer": "^5.4.7",
-    "autoprefixer": "^10.4.22",
     "eslint": "^9",
     "eslint-config-next": "15.3.4"
   }
