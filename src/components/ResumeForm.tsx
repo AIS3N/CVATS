@@ -9,7 +9,6 @@ interface ResumeFormProps {
   activeColor: string;
   setActiveColor: (color: string) => void;
   darkMode: boolean;
-  setDarkMode: (isDark: boolean) => void;
   language: 'en' | 'fr';
   translations: Record<string, string>;
 }
@@ -20,7 +19,6 @@ export default function ResumeForm({
   activeColor, 
   setActiveColor,
   darkMode,
-  setDarkMode,
   language,
   translations: t
 }: ResumeFormProps) {
@@ -275,7 +273,7 @@ export default function ResumeForm({
         } else {
           alert(t.importError);
         }
-      } catch (error) {
+      } catch {
         alert(t.importError);
       }
     };

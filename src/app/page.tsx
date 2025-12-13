@@ -174,7 +174,6 @@ export default function Home() {
               activeColor={activeColor}
               setActiveColor={setActiveColor}
               darkMode={darkMode}
-              setDarkMode={setDarkMode}
               language={language}
               translations={t}
             />
