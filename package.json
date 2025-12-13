@@ -8,6 +8,11 @@
     "start": "next start",
     "lint": "next lint"
   },
+  "browserslist": [
+    "> 0.5%",
+    "last 2 versions",
+    "not dead"
+  ],
   "dependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
