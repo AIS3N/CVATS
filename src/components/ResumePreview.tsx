@@ -331,19 +331,33 @@ export default function ResumePreview({ resumeData, activeColor, language }: Res
         </div>
       </div>
       
-      <div 
-        ref={resumeRef}
-        data-resume-ref="true"
-        className="border rounded-lg overflow-hidden bg-white" 
-        style={{ 
-          maxWidth: '800px', 
-          margin: '0 auto', 
-          minHeight: 'auto',
-          fontFamily: 'system-ui, -apple-system, sans-serif',
-          lineHeight: '1.4',
-          letterSpacing: '0.01em'
-        }}
-      >
+      {/* A4 Page Boundary Indicator */}
+      <div className="relative" style={{ maxWidth: '595px', margin: '0 auto' }}>
+        {/* A4 Height Indicator Line */}
+        <div 
+           className="absolute left-0 right-0 border-t-2 border-red-500 border-dashed z-10 pointer-events-none"
+           style={{ 
+             top: '841px', // A4 height (595px * 297/210 = 841px)
+             opacity: 0.7
+           }}
+        >
+          <div className="absolute -top-6 right-0 bg-red-500 text-white text-xs px-2 py-1 rounded">
+            A4 Page End
+          </div>
+        </div>
+        
+        <div 
+          ref={resumeRef}
+          data-resume-ref="true"
+          className="border rounded-lg overflow-hidden bg-white relative" 
+          style={{ 
+            width: '100%',
+            minHeight: 'auto',
+            fontFamily: 'system-ui, -apple-system, sans-serif',
+            lineHeight: '1.4',
+            letterSpacing: '0.01em'
+          }}
+        >
         {/* Header */}
         <div className="p-4" style={{backgroundColor: colorThemes[activeColor as keyof typeof colorThemes].secondary.replace('bg-[', '').replace(']', '')}}>
           <div className="flex items-start gap-4">
@@ -401,8 +415,8 @@ export default function ResumePreview({ resumeData, activeColor, language }: Res
         <div className="p-4">
           {/* Summary */}
           {resumeData.personalInfo.summary && (
-            <div className="mb-4">
-              <h2 className="text-base font-semibold mb-1 pb-2" style={{borderBottom: `1px solid ${colorThemes[activeColor as keyof typeof colorThemes].border.replace('border-[', '').replace(']', '')}`}}>
+            <div className="mb-2">
+              <h2 className="text-base font-semibold mb-0 pb-0 mb-2" style={{borderBottom: `1px solid ${colorThemes[activeColor as keyof typeof colorThemes].border.replace('border-[', '').replace(']', '')}`}}>
                 {t.professionalSummary}
               </h2>
               <p className="text-xs leading-relaxed">{resumeData.personalInfo.summary}</p>
@@ -411,8 +425,8 @@ export default function ResumePreview({ resumeData, activeColor, language }: Res
           
           {/* Experience */}
           {resumeData.experiences.some(exp => exp.company || exp.position) && (
-            <div className="mb-4">
-              <h2 className="text-base font-semibold mb-1 pb-2" style={{borderBottom: `1px solid ${colorThemes[activeColor as keyof typeof colorThemes].border.replace('border-[', '').replace(']', '')}`}}>
+            <div className="mb-2">
+              <h2 className="text-base font-semibold mb-0 pb-0 mb-2" style={{borderBottom: `1px solid ${colorThemes[activeColor as keyof typeof colorThemes].border.replace('border-[', '').replace(']', '')}`}}>
                 {t.experience}
               </h2>
               
@@ -425,7 +439,10 @@ export default function ResumePreview({ resumeData, activeColor, language }: Res
                         <p className="text-xs">{exp.company || t.company}</p>
                       </div>
                       <p className="text-xs" style={{color: '#4b5563'}}>
-                        {exp.startDate || t.startDate} - {exp.endDate || t.endDate}
+                        {exp.endDate ? 
+                          `${exp.startDate || t.startDate} - ${exp.endDate}` : 
+                          (exp.startDate || t.startDate)
+                        }
                       </p>
                     </div>
                     
@@ -433,7 +450,6 @@ export default function ResumePreview({ resumeData, activeColor, language }: Res
                     
                     {exp.achievements.some(a => a.trim()) && (
                       <div className="mt-1">
-                        <p className="text-xs font-medium">{t.keyAchievements}</p>
                         <ul className="list-disc list-outside text-xs pl-4 ml-2 leading-relaxed">
                           {exp.achievements.map((achievement, i) => (
                             achievement.trim() && (
@@ -449,10 +465,39 @@ export default function ResumePreview({ resumeData, activeColor, language }: Res
             </div>
           )}
           
+          {/* Skills */}
+          {resumeData.skills.some(skill => skill.name) && (
+            <div className="mb-2">
+              <h2 className="text-base font-semibold mb-0 pb-0 mb-2" style={{borderBottom: `1px solid ${colorThemes[activeColor as keyof typeof colorThemes].border.replace('border-[', '').replace(']', '')}`}}>
+                {t.skills}
+              </h2>
+              
+              <div className="flex flex-wrap gap-1 mt-2">
+                {resumeData.skills.map((skill) => (
+                  skill.name && (
+                    <div 
+                      key={skill.id} 
+                      className="px-2 py-1 rounded-full text-xs"
+                      style={skill.level >= 4 ? {
+                        backgroundColor: colorThemes[activeColor as keyof typeof colorThemes].primary.replace('bg-[', '').replace(']', ''),
+                        color: 'white'
+                      } : {
+                        backgroundColor: colorThemes[activeColor as keyof typeof colorThemes].secondary.replace('bg-[', '').replace(']', ''),
+                        color: colorThemes[activeColor as keyof typeof colorThemes].text.replace('text-[', '').replace(']', '')
+                      }}
+                    >
+                      {skill.name}
+                    </div>
+                  )
+                ))}
+              </div>
+            </div>
+          )}
+          
           {/* Education */}
           {resumeData.education.some(edu => edu.institution || edu.degree) && (
-            <div className="mb-4">
-              <h2 className="text-base font-semibold mb-1 pb-2" style={{borderBottom: `1px solid ${colorThemes[activeColor as keyof typeof colorThemes].border.replace('border-[', '').replace(']', '')}`}}>
+            <div className="mb-2">
+              <h2 className="text-base font-semibold mb-0 pb-0 mb-2" style={{borderBottom: `1px solid ${colorThemes[activeColor as keyof typeof colorThemes].border.replace('border-[', '').replace(']', '')}`}}>
                 {t.education}
               </h2>
               
@@ -476,39 +521,10 @@ export default function ResumePreview({ resumeData, activeColor, language }: Res
             </div>
           )}
           
-          {/* Skills */}
-          {resumeData.skills.some(skill => skill.name) && (
-            <div className="mb-4">
-              <h2 className="text-base font-semibold mb-1 pb-2" style={{borderBottom: `1px solid ${colorThemes[activeColor as keyof typeof colorThemes].border.replace('border-[', '').replace(']', '')}`}}>
-                {t.skills}
-              </h2>
-              
-              <div className="flex flex-wrap gap-1">
-                {resumeData.skills.map((skill) => (
-                  skill.name && (
-                    <div 
-                      key={skill.id} 
-                      className="px-2 py-1 rounded-full text-xs"
-                      style={skill.level >= 4 ? {
-                        backgroundColor: colorThemes[activeColor as keyof typeof colorThemes].primary.replace('bg-[', '').replace(']', ''),
-                        color: 'white'
-                      } : {
-                        backgroundColor: colorThemes[activeColor as keyof typeof colorThemes].secondary.replace('bg-[', '').replace(']', ''),
-                        color: colorThemes[activeColor as keyof typeof colorThemes].text.replace('text-[', '').replace(']', '')
-                      }}
-                    >
-                      {skill.name}
-                    </div>
-                  )
-                ))}
-              </div>
-            </div>
-          )}
-          
           {/* References */}
           {resumeData.references.some(ref => ref.name) && (
             <div>
-              <h2 className="text-base font-semibold mb-1 pb-2" style={{borderBottom: `1px solid ${colorThemes[activeColor as keyof typeof colorThemes].border.replace('border-[', '').replace(']', '')}`}}>
+              <h2 className="text-base font-semibold mb-0 pb-0 mb-2" style={{borderBottom: `1px solid ${colorThemes[activeColor as keyof typeof colorThemes].border.replace('border-[', '').replace(']', '')}`}}>
                 {t.references}
               </h2>
               
@@ -534,6 +550,7 @@ export default function ResumePreview({ resumeData, activeColor, language }: Res
             </div>
           )}
         </div>
+      </div>
       </div>
     </div>
   );

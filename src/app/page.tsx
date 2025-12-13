@@ -30,7 +30,12 @@ const translations = {
     freeInfo: "💯 100% Free - No hidden costs or subscriptions",
     privacyInfo: "🔒 Your data stays private - nothing is stored in our database",
     atsInfo: "📄 Single-column layout optimized for ATS and recruitment bots",
-    formatInfo: "📏 Professional A4 format - the industry standard"
+    formatInfo: "📏 Professional A4 format - the industry standard",
+    exportJson: "Export JSON",
+    importJson: "Import JSON",
+    exportSuccess: "Resume exported successfully!",
+    importSuccess: "Resume imported successfully!",
+    importError: "Error importing resume. Please check the file format."
   },
   fr: {
     title: "Générateur de CV Compatible ATS",
@@ -54,7 +59,12 @@ const translations = {
     freeInfo: "💯 100% Gratuit - Aucun coût caché ou abonnement",
     privacyInfo: "🔒 Vos données restent privées - rien n'est stocké dans notre base de données",
     atsInfo: "📄 Mise en page à colonne unique optimisée pour les ATS et robots de recrutement",
-    formatInfo: "📏 Format A4 professionnel - la norme de l'industrie"
+    formatInfo: "📏 Format A4 professionnel - la norme de l'industrie",
+    exportJson: "Exporter JSON",
+    importJson: "Importer JSON",
+    exportSuccess: "CV exporté avec succès!",
+    importSuccess: "CV importé avec succès!",
+    importError: "Erreur lors de l'importation du CV. Veuillez vérifier le format du fichier."
   }
 };
 

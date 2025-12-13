@@ -75,6 +75,26 @@ export default function ResumeForm({
     });
   };
 
+  const moveExperienceUp = (index: number) => {
+    if (index === 0) return;
+    const updatedExperiences = [...resumeData.experiences];
+    [updatedExperiences[index], updatedExperiences[index - 1]] = [updatedExperiences[index - 1], updatedExperiences[index]];
+    setResumeData({
+      ...resumeData,
+      experiences: updatedExperiences,
+    });
+  };
+
+  const moveExperienceDown = (index: number) => {
+    if (index === resumeData.experiences.length - 1) return;
+    const updatedExperiences = [...resumeData.experiences];
+    [updatedExperiences[index], updatedExperiences[index + 1]] = [updatedExperiences[index + 1], updatedExperiences[index]];
+    setResumeData({
+      ...resumeData,
+      experiences: updatedExperiences,
+    });
+  };
+
   const addAchievement = (expIndex: number) => {
     const updatedExperiences = [...resumeData.experiences];
     updatedExperiences[expIndex].achievements.push('');
@@ -214,6 +234,57 @@ export default function ResumeForm({
     });
   };
 
+  const exportToJson = () => {
+    const dataToExport = {
+      resumeData,
+      activeColor,
+      timestamp: new Date().toISOString()
+    };
+    
+    const dataStr = JSON.stringify(dataToExport, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `resume-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    alert(t.exportSuccess);
+  };
+
+  const importFromJson = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const content = e.target?.result as string;
+        const importedData = JSON.parse(content);
+        
+        if (importedData.resumeData) {
+          setResumeData(importedData.resumeData);
+          if (importedData.activeColor) {
+            setActiveColor(importedData.activeColor);
+          }
+          alert(t.importSuccess);
+        } else {
+          alert(t.importError);
+        }
+      } catch (error) {
+        alert(t.importError);
+      }
+    };
+    reader.readAsText(file);
+    
+    // Reset the input value so the same file can be imported again
+    event.target.value = '';
+  };
+
   return (
     <div className="p-6 rounded-lg shadow-md bg-[var(--background)] text-[var(--foreground)]">
       <div className="mb-6">
@@ -234,6 +305,37 @@ export default function ResumeForm({
               aria-label={`${color} theme`}
             />
           ))}
+        </div>
+      </div>
+
+      {/* Export/Import Section */}
+      <div className="mb-6">
+        <h2 className="text-xl font-semibold mb-4">{t.exportJson} / {t.importJson}</h2>
+        <div className="flex gap-3 flex-wrap">
+          <button
+            onClick={exportToJson}
+            className="px-4 py-2 rounded font-medium transition-colors"
+            style={{
+              backgroundColor: colorThemes[activeColor as keyof typeof colorThemes].primary.replace('bg-[', '').replace(']', ''),
+              color: 'white'
+            }}
+          >
+            📥 {t.exportJson}
+          </button>
+          <label className="px-4 py-2 rounded font-medium transition-colors cursor-pointer inline-block"
+            style={{
+              backgroundColor: colorThemes[activeColor as keyof typeof colorThemes].secondary.replace('bg-[', '').replace(']', ''),
+              color: colorThemes[activeColor as keyof typeof colorThemes].text.replace('text-[', '').replace(']', '')
+            }}
+          >
+            📤 {t.importJson}
+            <input
+              type="file"
+              accept=".json"
+              onChange={importFromJson}
+              className="hidden"
+            />
+          </label>
         </div>
       </div>
 
@@ -452,15 +554,37 @@ export default function ResumeForm({
             <div key={exp.id} className="mb-6 p-4 border rounded" style={{backgroundColor: darkMode ? '#374151' : '#f9fafb'}}>
               <div className="flex justify-between items-center mb-3">
                 <h3 className="font-medium">Experience {index + 1}</h3>
-                {resumeData.experiences.length > 1 && (
-                  <button
-                    className="hover:opacity-80"
-                    style={{color: '#ef4444'}}
-                    onClick={() => removeExperience(index)}
-                  >
-                    Remove
-                  </button>
-                )}
+                <div className="flex items-center gap-2">
+                  {resumeData.experiences.length > 1 && (
+                    <>
+                      <button
+                        className="px-2 py-1 text-sm rounded hover:opacity-80 disabled:opacity-50"
+                        style={{backgroundColor: '#6b7280', color: 'white'}}
+                        onClick={() => moveExperienceUp(index)}
+                        disabled={index === 0}
+                        title="Move up"
+                      >
+                        ↑
+                      </button>
+                      <button
+                        className="px-2 py-1 text-sm rounded hover:opacity-80 disabled:opacity-50"
+                        style={{backgroundColor: '#6b7280', color: 'white'}}
+                        onClick={() => moveExperienceDown(index)}
+                        disabled={index === resumeData.experiences.length - 1}
+                        title="Move down"
+                      >
+                        ↓
+                      </button>
+                      <button
+                        className="hover:opacity-80"
+                        style={{color: '#ef4444'}}
+                        onClick={() => removeExperience(index)}
+                      >
+                        Remove
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
