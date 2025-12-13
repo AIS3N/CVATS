@@ -10,6 +10,9 @@
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
     "country-flag-icons": "^1.5.19",
     "html2canvas": "^1.4.1",
     "jspdf": "^3.0.1",
@@ -17,16 +20,13 @@
     "puppeteer": "^24.10.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "tailwindcss": "^4"
+    "tailwindcss": "^4",
+    "typescript": "^5"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
-    "@types/node": "^20",
     "@types/puppeteer": "^5.4.7",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "15.3.4",
-    "typescript": "^5"
+    "eslint-config-next": "15.3.4"
   }
 }
