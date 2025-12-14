@@ -77,9 +77,6 @@ export default function ResumePreview({ resumeData, activeColor, language }: Res
         })
         .join('\n');
       
-      // Sanitize modern color functions unsupported by Render's Chromium
-      const sanitizedCss = css.replace(/oklch\([^)]*\)/g, '#111827');
-      
       const filename = resumeData.personalInfo.name 
         ? `${resumeData.personalInfo.name.replace(/\s+/g, '_')}_Resume.pdf`
         : 'Resume.pdf';
@@ -91,7 +88,7 @@ export default function ResumePreview({ resumeData, activeColor, language }: Res
         },
         body: JSON.stringify({
           html: element.outerHTML,
-          css: sanitizedCss,
+          css: css,
           filename: filename
         })
       });
