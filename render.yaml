@@ -4,7 +4,7 @@ services:
     env: node
     plan: free
     buildCommand: 'mkdir -p /opt/render/.cache/puppeteer && npm ci && PUPPETEER_CACHE_DIR=/opt/render/.cache/puppeteer PUPPETEER_PRODUCT=chrome PUPPETEER_SKIP_DOWNLOAD=false npx puppeteer browsers install chrome && ls -la /opt/render/.cache/puppeteer || true && npm run build'
-    startCommand: 'npm start'
+    startCommand: 'export PUPPETEER_CACHE_DIR=/opt/render/.cache/puppeteer PUPPETEER_SKIP_DOWNLOAD=false PUPPETEER_PRODUCT=chrome; npx puppeteer browsers install chrome || true; export PUPPETEER_EXECUTABLE_PATH=$(ls -d /opt/render/.cache/puppeteer/chrome/*/chrome-linux64/chrome 2>/dev/null | tail -n 1); echo "[render start] PUPPETEER_EXECUTABLE_PATH=$PUPPETEER_EXECUTABLE_PATH"; npm start'
     envVars:
       - key: NODE_ENV
         value: production

@@ -1,9 +1,32 @@
 import { NextResponse } from 'next/server';
 import puppeteer from 'puppeteer';
 import { colorThemes, Experience, Education, Skill, Reference } from '@/types/resume';
+import fs from 'node:fs';
+import path from 'node:path';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+
+// Finds the Chrome executable installed via `npx puppeteer browsers install chrome` under the cache dir
+function findChromeExecutable(cacheDir: string): string | undefined {
+  try {
+    const base = path.join(cacheDir, 'chrome');
+    if (!fs.existsSync(base)) return undefined;
+    const entries = fs.readdirSync(base, { withFileTypes: true }).filter((d) => d.isDirectory());
+    // Look for latest version first
+    entries.sort((a, b) => a.name.localeCompare(b.name));
+    for (let i = entries.length - 1; i >= 0; i--) {
+      const dir = entries[i].name;
+      const p1 = path.join(base, dir, 'chrome-linux64', 'chrome');
+      const p2 = path.join(base, dir, 'chrome-linux', 'chrome');
+      if (fs.existsSync(p1)) return p1;
+      if (fs.existsSync(p2)) return p2;
+    }
+  } catch {
+    // ignore
+  }
+  return undefined;
+}
 
 export async function POST(request: Request) {
   try {
@@ -159,13 +182,19 @@ export async function POST(request: Request) {
       `;
     }
 
-    console.log('[generate-pdf] PUPPETEER_CACHE_DIR:', process.env.PUPPETEER_CACHE_DIR);
+    const cacheDir = process.env.PUPPETEER_CACHE_DIR || '/opt/render/.cache/puppeteer';
+    const execPath = process.env.PUPPETEER_EXECUTABLE_PATH || findChromeExecutable(cacheDir) || puppeteer.executablePath();
+    console.log('[generate-pdf] PUPPETEER_CACHE_DIR:', cacheDir);
+    console.log('[generate-pdf] Using Chrome executable:', execPath);
+
     const browser = await puppeteer.launch({
       headless: true,
       args: [
         '--no-sandbox',
-        '--disable-setuid-sandbox'
-      ]
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage'
+      ],
+      executablePath: execPath
     });
 
     const page = await browser.newPage();
@@ -196,5 +225,3 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Failed to generate PDF', message }, { status: 500 });
   }
 }
-
-// Removed stray helper function that caused lint errors
