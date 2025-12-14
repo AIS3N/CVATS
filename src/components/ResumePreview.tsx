@@ -63,36 +63,24 @@ export default function ResumePreview({ resumeData, activeColor, language }: Res
 
     setIsGeneratingPDF(true);
     try {
-      const element = resumeRef.current;
-      
-      const css = Array.from(document.styleSheets)
-        .map(sheet => {
-          try {
-            return Array.from(sheet.cssRules)
-              .map(rule => rule.cssText)
-              .join('\n');
-          } catch {
-            return '';
-          }
-        })
-        .join('\n');
-      
-      const filename = resumeData.personalInfo.name 
-        ? `${resumeData.personalInfo.name.replace(/\s+/g, '_')}_Resume.pdf`
-        : 'Resume.pdf';
-      
-      const response = await fetch('/api/generate-pdf', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          resumeData,
-          activeColor,
-          language,
-          filename
-        })
-      });
+      // No need to collect client-side CSS or element HTML; server renders HTML from resumeData
+       
+       const filename = resumeData.personalInfo.name 
+         ? `${resumeData.personalInfo.name.replace(/\s+/g, '_')}_Resume.pdf`
+         : 'Resume.pdf';
+       
+       const response = await fetch('/api/generate-pdf', {
+         method: 'POST',
+         headers: {
+           'Content-Type': 'application/json',
+         },
+         body: JSON.stringify({
+           resumeData,
+           activeColor,
+           language,
+           filename,
+         }),
+       });
       
       if (!response.ok) {
         throw new Error('Puppeteer PDF generation failed');

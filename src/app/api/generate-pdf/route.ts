@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import puppeteer from 'puppeteer';
-import { ResumeData, colorThemes, Experience, Education, Skill, Reference } from '@/types/resume';
+import { colorThemes, Experience, Education, Skill, Reference } from '@/types/resume';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -193,7 +193,7 @@ export async function POST(request: Request) {
       }
     });
   } catch (error) {
-    const message = (error && typeof error === 'object' && 'message' in error) ? (error as any).message : String(error);
+    const message = error instanceof Error ? error.message : String(error);
     console.error('Error generating PDF:', message);
     return NextResponse.json({ error: 'Failed to generate PDF', message }, { status: 500 });
   }
