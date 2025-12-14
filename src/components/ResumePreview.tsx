@@ -69,6 +69,19 @@ export default function ResumePreview({ resumeData, activeColor, language }: Res
          ? `${resumeData.personalInfo.name.replace(/\s+/g, '_')}_Resume.pdf`
          : 'Resume.pdf';
        
+       const themePrimary = colorThemes[activeColor as keyof typeof colorThemes].primary
+         .replace('bg-[', '')
+         .replace(']', '');
+       const themeSecondary = colorThemes[activeColor as keyof typeof colorThemes].secondary
+         .replace('bg-[', '')
+         .replace(']', '');
+       const themeText = colorThemes[activeColor as keyof typeof colorThemes].text
+         .replace('text-[', '')
+         .replace(']', '');
+       const themeBorder = colorThemes[activeColor as keyof typeof colorThemes].border
+         .replace('border-[', '')
+         .replace(']', '');
+       
        const response = await fetch('/api/generate-pdf', {
          method: 'POST',
          headers: {
@@ -79,6 +92,10 @@ export default function ResumePreview({ resumeData, activeColor, language }: Res
            activeColor,
            language,
            filename,
+           themePrimary,
+           themeSecondary,
+           themeText,
+           themeBorder,
          }),
        });
       

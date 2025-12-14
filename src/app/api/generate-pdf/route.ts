@@ -30,7 +30,7 @@ function findChromeExecutable(cacheDir: string): string | undefined {
 
 export async function POST(request: Request) {
   try {
-    const { resumeData, activeColor, language, filename, html, css } = await request.json();
+    const { resumeData, activeColor, language, filename, html, css, themePrimary, themeSecondary, themeText, themeBorder } = await request.json();
 
     if (!resumeData && !html) {
       return NextResponse.json({ error: 'Provide either resumeData or html' }, { status: 400 });
@@ -50,7 +50,7 @@ export async function POST(request: Request) {
           <title>Resume</title>
           <style>
             * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
-            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 0; }
+            body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 0; }
             ${css || ''}
           </style>
         </head>
@@ -61,10 +61,14 @@ export async function POST(request: Request) {
       `;
     } else {
       const theme = colorThemes[(activeColor as keyof typeof colorThemes) || 'blue'] || colorThemes.blue;
-      const primary = theme.primary.replace('bg-[', '').replace(']', '');
-      const secondary = theme.secondary.replace('bg-[', '').replace(']', '');
-      const textColor = theme.text.replace('text-[', '').replace(']', '');
-      const borderColor = theme.border.replace('border-[', '').replace(']', '');
+      const primaryComputed = theme.primary.replace('bg-[', '').replace(']', '');
+      const secondaryComputed = theme.secondary.replace('bg-[', '').replace(']', '');
+      const textColorComputed = theme.text.replace('text-[', '').replace(']', '');
+      const borderColorComputed = theme.border.replace('border-[', '').replace(']', '');
+      const primary = themePrimary || primaryComputed;
+      const secondary = themeSecondary || secondaryComputed;
+      const textColor = themeText || textColorComputed;
+      const borderColor = themeBorder || borderColorComputed;
 
       const t = language === 'fr' ? {
         professionalSummary: 'RÉSUMÉ PROFESSIONNEL',
@@ -96,14 +100,22 @@ export async function POST(request: Request) {
       const experiencesHtml = (resumeData.experiences || []).map((exp: Experience) => {
         const achievementsHtml = (exp.achievements || [])
           .filter((a: string) => a && a.trim())
-          .map((a: string) => `<li>${safe(a)}</li>`)
+          .map((a: string) => `<li style="line-height:1.35;margin-bottom:1px;">${safe(a)}</li>`)
           .join('');
+        const dates = exp.endDate
+          ? `${safe(exp.startDate)} - ${safe(exp.endDate)}`
+          : safe(exp.startDate);
         return `
-          <div style="margin-bottom: 10px;">
-            <div style="font-weight: 600;">${safe(exp.position)}${exp.company ? `, ${safe(exp.company)}` : ''}</div>
-            <div style="font-size: 12px; color: #555;">${safe(exp.startDate)}${exp.endDate ? ` - ${safe(exp.endDate)}` : ''}</div>
-            ${exp.description ? `<div style="margin-top: 4px;">${safe(exp.description)}</div>` : ''}
-            ${achievementsHtml ? `<ul style="padding-left: 16px; margin-top: 4px;">${achievementsHtml}</ul>` : ''}
+          <div style="margin-bottom: 12px;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+              <div>
+                ${exp.position ? `<h3 style="font-weight:500;font-size:13px;margin:0;">${safe(exp.position)}</h3>` : ''}
+                ${exp.company ? `<p style="font-size:12px;margin:2px 0 0 0;">${safe(exp.company)}</p>` : ''}
+              </div>
+              ${dates ? `<p style="font-size:12px;color:#4b5563;margin:0;white-space:nowrap;">${dates}</p>` : ''}
+            </div>
+            ${exp.description ? `<p style="font-size:12px;line-height:1.625;margin:2px 0 0 0;">${safe(exp.description)}</p>` : ''}
+            ${achievementsHtml ? `<ul style="padding-left:16px;margin-top:0;margin-bottom:0;list-style-type:disc;list-style-position:outside;margin-left:8px;">${achievementsHtml}</ul>` : ''}
           </div>
         `;
       }).join('');
@@ -117,14 +129,15 @@ export async function POST(request: Request) {
         </div>
       `).join('');
 
-      const skillsHtml = (resumeData.skills || []).map((sk: Skill) => `
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <span>${safe(sk.name)}</span>
-          <div style="height: 6px; background: #eee; flex: 1; border-radius: 3px; overflow: hidden;">
-            <div style="width: ${(Math.max(0, Math.min(5, sk.level)) / 5) * 100}%; height: 100%; background: ${primary};"></div>
+      const skillsHtml = (resumeData.skills || []).map((sk: Skill) => {
+        const bg = (Number(sk.level) >= 4) ? primary : secondary;
+        const fg = (Number(sk.level) >= 4) ? '#ffffff' : textColor;
+        return `
+          <div style="display:inline-flex;align-items:center;justify-content:center;padding:4px 8px;border-radius:9999px;background:${bg};color:${fg};">
+            ${safe(sk.name)}
           </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
 
       const referencesHtml = (resumeData.references || []).map((ref: Reference) => `
         <div style="margin-bottom: 10px;">
@@ -148,7 +161,8 @@ export async function POST(request: Request) {
           <title>Resume</title>
           <style>
             body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 0; color: #111; }
-            .page { width: 794px; min-height: 1123px; box-sizing: border-box; padding: 20px; }
+            .page { width: 794px; min-height: 1123px; box-sizing: border-box; padding: 0px; }
+            .main { padding-left: 16px; }
             .header { background: ${secondary}; padding: 16px; display: flex; gap: 16px; align-items: center; }
             .name { font-size: 22px; font-weight: 700; margin: 0; }
             .title { font-size: 16px; margin: 2px 0 0 0; color: ${textColor}; }
@@ -168,14 +182,16 @@ export async function POST(request: Request) {
                 ${contactHtml ? `<div class="contact">${contactHtml}</div>` : ''}
               </div>
             </div>
-            <div class="section">
-              ${resumeData.personalInfo.summary ? `<div class="section-title">${t.professionalSummary}</div>` : ''}
-              ${resumeData.personalInfo.summary ? `<div class="content">${safe(resumeData.personalInfo.summary)}</div>` : ''}
+            <div class="main">
+              <div class="section">
+                ${resumeData.personalInfo.summary ? `<div class="section-title">${t.professionalSummary}</div>` : ''}
+                ${resumeData.personalInfo.summary ? `<div class="content">${safe(resumeData.personalInfo.summary)}</div>` : ''}
+              </div>
+              ${experiencesHtml ? `<div class="section"><div class="section-title">${t.experience}</div><div class="content">${experiencesHtml}</div></div>` : ''}
+              ${educationHtml ? `<div class="section"><div class="section-title">${t.education}</div><div class="content">${educationHtml}</div></div>` : ''}
+              ${skillsHtml ? `<div class="section"><div class="section-title">${t.skills}</div><div class="content" style="display: flex; flex-wrap: wrap; gap: 6px;">${skillsHtml}</div></div>` : ''}
+              ${referencesHtml ? `<div class="section"><div class="section-title">${t.references}</div><div class="content">${referencesHtml}</div></div>` : ''}
             </div>
-            ${experiencesHtml ? `<div class="section"><div class="section-title">${t.experience}</div><div class="content">${experiencesHtml}</div></div>` : ''}
-            ${educationHtml ? `<div class="section"><div class="section-title">${t.education}</div><div class="content">${educationHtml}</div></div>` : ''}
-            ${skillsHtml ? `<div class="section"><div class="section-title">${t.skills}</div><div class="content" style="display: grid; gap: 6px;">${skillsHtml}</div></div>` : ''}
-            ${referencesHtml ? `<div class="section"><div class="section-title">${t.references}</div><div class="content">${referencesHtml}</div></div>` : ''}
           </div>
         </body>
         </html>
