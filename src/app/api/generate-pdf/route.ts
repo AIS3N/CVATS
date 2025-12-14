@@ -164,7 +164,10 @@ export async function POST(request: Request) {
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox'
-      ]
+      ],
+      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH
+        ? process.env.PUPPETEER_EXECUTABLE_PATH
+        : undefined
     });
 
     const page = await browser.newPage();
@@ -182,10 +185,11 @@ export async function POST(request: Request) {
     await browser.close();
 
     const pdfBuffer = Buffer.from(pdfData);
+    const finalName = filename || (resumeData?.personalInfo?.name ? `${String(resumeData.personalInfo.name).replace(/\s+/g, '_')}_Resume.pdf` : 'resume.pdf');
     return new NextResponse(pdfBuffer, {
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="${filename || 'resume.pdf'}"`
+        'Content-Disposition': `attachment; filename="${finalName}"`
       }
     });
   } catch (error) {
