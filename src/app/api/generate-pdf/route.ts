@@ -159,15 +159,13 @@ export async function POST(request: Request) {
       `;
     }
 
+    console.log('[generate-pdf] PUPPETEER_CACHE_DIR:', process.env.PUPPETEER_CACHE_DIR);
     const browser = await puppeteer.launch({
       headless: true,
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox'
-      ],
-      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH
-        ? process.env.PUPPETEER_EXECUTABLE_PATH
-        : undefined
+      ]
     });
 
     const page = await browser.newPage();
@@ -198,3 +196,32 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Failed to generate PDF', message }, { status: 500 });
   }
 }
+
+    function resolveExecutablePath(): string | undefined {
+      const candidates: (string | undefined)[] = [];
+      const cacheDir = process.env.PUPPETEER_CACHE_DIR || '/opt/render/.cache/puppeteer';
+      const cachePath = findChromeInCache(cacheDir);
+      if (cachePath) candidates.push(cachePath);
+      if (process.env.PUPPETEER_EXECUTABLE_PATH) candidates.push(process.env.PUPPETEER_EXECUTABLE_PATH);
+      let pptrPath: string | undefined;
+      try {
+        pptrPath = puppeteer.executablePath();
+        candidates.push(pptrPath);
+      } catch (_) {}
+      candidates.push(
+        '/usr/bin/chromium-browser',
+        '/usr/bin/chromium',
+        '/usr/bin/google-chrome',
+        '/usr/bin/google-chrome-stable',
+        '/usr/bin/google-chrome-beta'
+      );
+      console.log('[generate-pdf] Cache dir:', cacheDir);
+      console.log('[generate-pdf] Candidate paths:', candidates.filter(Boolean));
+      for (const p of candidates) {
+        if (p && fs.existsSync(p)) return p;
+      }
+      // As a last resort, return puppeteer.executablePath even if fs check failed
+      return pptrPath;
+    }
+
+// Removed stray helper function that caused lint errors

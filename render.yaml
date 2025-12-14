@@ -3,7 +3,7 @@ services:
     name: cv-ats
     env: node
     plan: free
-    buildCommand: 'mkdir -p /opt/render/.cache/puppeteer && npm ci && npx puppeteer browsers install chrome && npm run build'
+    buildCommand: 'mkdir -p /opt/render/.cache/puppeteer && npm ci && PUPPETEER_CACHE_DIR=/opt/render/.cache/puppeteer PUPPETEER_PRODUCT=chrome PUPPETEER_SKIP_DOWNLOAD=false npx puppeteer browsers install chrome && ls -la /opt/render/.cache/puppeteer || true && npm run build'
     startCommand: 'npm start'
     envVars:
       - key: NODE_ENV
