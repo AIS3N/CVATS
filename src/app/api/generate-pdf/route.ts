@@ -109,8 +109,8 @@ export async function POST(request: Request) {
           <div style="margin-bottom: 12px;">
             <div style="display:flex;justify-content:space-between;align-items:flex-start;">
               <div>
-                ${exp.position ? `<h3 style="font-weight:500;font-size:13px;margin:0;">${safe(exp.position)}</h3>` : ''}
-                ${exp.company ? `<p style="font-size:12px;margin:2px 0 0 0;">${safe(exp.company)}</p>` : ''}
+                ${exp.position ? `<h3 style="font-weight:500;font-size:14px;margin:0;">${safe(exp.position)}</h3>` : ''}
+                ${exp.company ? `<p style="font-size:12px;margin:0 0 0 0;">${safe(exp.company)}</p>` : ''}
               </div>
               ${dates ? `<p style="font-size:12px;color:#4b5563;margin:0;white-space:nowrap;">${dates}</p>` : ''}
             </div>
@@ -122,10 +122,12 @@ export async function POST(request: Request) {
 
       const educationHtml = (resumeData.education || []).map((ed: Education) => `
         <div style="margin-bottom: 10px;">
-          <div style="font-weight: 600;">${safe(ed.degree)}${ed.field ? `, ${safe(ed.field)}` : ''}</div>
-          <div style="font-size: 12px; color: #555;">${safe(ed.institution)}</div>
-          <div style="font-size: 12px; color: #555;">${safe(ed.startDate)}${ed.endDate ? ` - ${safe(ed.endDate)}` : ''}</div>
-          ${ed.description ? `<div style="margin-top: 4px;">${safe(ed.description)}</div>` : ''}
+          <div style="font-weight:600;font-size:13px;margin:0;">${safe(ed.degree)}${ed.field ? ` ${safe(ed.field)}` : ''}</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div style="font-size:12px;color:#555;">${safe(ed.institution)}</div>
+            <div style="font-size:12px;color:#4b5563;margin:0;white-space:nowrap;">${safe(ed.startDate)}${ed.endDate ? ` - ${safe(ed.endDate)}` : ''}</div>
+          </div>
+          ${ed.description ? `<div style="margin-top: 4px;font-size:12px;line-height:1.625;">${safe(ed.description)}</div>` : ''}
         </div>
       `).join('');
 
@@ -139,9 +141,13 @@ export async function POST(request: Request) {
         `;
       }).join('');
 
-      const referencesHtml = (resumeData.references || []).map((ref: Reference) => `
+      const validReferences = (resumeData.references || []).filter((ref: Reference) => {
+        return [ref.name, ref.position, ref.company, ref.email, ref.phone].some((v) => v && String(v).trim().length > 0);
+      });
+
+      const referencesHtml = validReferences.map((ref: Reference) => `
         <div style="margin-bottom: 10px;">
-          <div style="font-weight: 600;">${safe(ref.name)}${ref.position ? `, ${safe(ref.position)}` : ''}</div>
+          ${ref.name || ref.position ? `<div style="font-weight: 600;">${ref.name ? safe(ref.name) : ''}${ref.position ? `${ref.name ? ', ' : ''}${safe(ref.position)}` : ''}</div>` : ''}
           ${ref.company ? `<div style="font-size: 12px; color: #555;">${safe(ref.company)}</div>` : ''}
           ${ref.email ? `<div style="font-size: 12px; color: #555;">${safe(ref.email)}</div>` : ''}
           ${ref.phone ? `<div style="font-size: 12px; color: #555;">${safe(ref.phone)}</div>` : ''}
@@ -162,13 +168,13 @@ export async function POST(request: Request) {
           <style>
             body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 0; color: #111; }
             .page { width: 794px; min-height: 1123px; box-sizing: border-box; padding: 0px; }
-            .main { padding-left: 16px; }
+            .main { padding-left: 16px; padding-right: 16px; }
             .header { background: ${secondary}; padding: 16px; display: flex; gap: 16px; align-items: center; }
             .name { font-size: 22px; font-weight: 700; margin: 0; }
-            .title { font-size: 16px; margin: 2px 0 0 0; color: ${textColor}; }
+            .title { font-size: 18px; margin: 2px 0 0 0; color: ${textColor}; }
             .contact { margin-top: 8px; font-size: 12px; color: #333; }
             .section { margin-top: 12px; }
-            .section-title { font-size: 14px; font-weight: 600; padding-bottom: 4px; border-bottom: 1px solid ${borderColor}; }
+            .section-title { font-size: 16px; font-weight: 600; padding-bottom: 4px; border-bottom: 1px solid ${borderColor}; }
             .content { margin-top: 6px; font-size: 13px; line-height: 1.5; }
           </style>
         </head>
@@ -188,8 +194,8 @@ export async function POST(request: Request) {
                 ${resumeData.personalInfo.summary ? `<div class="content">${safe(resumeData.personalInfo.summary)}</div>` : ''}
               </div>
               ${experiencesHtml ? `<div class="section"><div class="section-title">${t.experience}</div><div class="content">${experiencesHtml}</div></div>` : ''}
-              ${educationHtml ? `<div class="section"><div class="section-title">${t.education}</div><div class="content">${educationHtml}</div></div>` : ''}
               ${skillsHtml ? `<div class="section"><div class="section-title">${t.skills}</div><div class="content" style="display: flex; flex-wrap: wrap; gap: 6px;">${skillsHtml}</div></div>` : ''}
+              ${educationHtml ? `<div class="section"><div class="section-title">${t.education}</div><div class="content">${educationHtml}</div></div>` : ''}
               ${referencesHtml ? `<div class="section"><div class="section-title">${t.references}</div><div class="content">${referencesHtml}</div></div>` : ''}
             </div>
           </div>
