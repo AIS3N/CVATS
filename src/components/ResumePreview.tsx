@@ -87,9 +87,10 @@ export default function ResumePreview({ resumeData, activeColor, language }: Res
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          html: element.outerHTML,
-          css: css,
-          filename: filename
+          resumeData,
+          activeColor,
+          language,
+          filename
         })
       });
       
@@ -135,7 +136,6 @@ export default function ResumePreview({ resumeData, activeColor, language }: Res
           font-feature-settings: "liga", "kern";
         }
         
-        /* Remove border, rounded corners, margins and width constraints for PDF export */
         .border.rounded-lg {
           border: none !important;
           border-radius: 0 !important;
@@ -144,12 +144,10 @@ export default function ResumePreview({ resumeData, activeColor, language }: Res
           width: 100% !important;
         }
         
-        /* Ensure proper font rendering */
         body, * {
           font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
         }
         
-        /* Fix list alignment for PDF export with exact CSS preservation */
          ul.list-disc {
            list-style-type: disc !important;
            list-style-position: outside !important;
@@ -167,7 +165,6 @@ export default function ResumePreview({ resumeData, activeColor, language }: Res
            list-style-type: disc !important;
          }
          
-         /* Ensure achievements section is visible */
          .mt-1 {
            margin-top: 0.25rem !important;
          }
@@ -184,7 +181,6 @@ export default function ResumePreview({ resumeData, activeColor, language }: Res
             line-height: 1.625 !important;
           }
           
-          /* Ensure text visibility and proper font sizing */
           .text-xs {
             font-size: 0.75rem !important;
             line-height: 1rem !important;
@@ -194,13 +190,11 @@ export default function ResumePreview({ resumeData, activeColor, language }: Res
             font-weight: 500 !important;
           }
           
-          /* Force visibility of all content */
           * {
             visibility: visible !important;
             opacity: 1 !important;
           }
         
-        /* Preserve layouts */
         .flex {
           display: flex !important;
         }
@@ -337,7 +331,7 @@ export default function ResumePreview({ resumeData, activeColor, language }: Res
         <div 
            className="absolute left-0 right-0 border-t-2 border-red-500 border-dashed z-10 pointer-events-none"
            style={{ 
-             top: '841px', // A4 height (595px * 297/210 = 841px)
+             top: '841px',
              opacity: 0.7
            }}
         >

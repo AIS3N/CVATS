@@ -1,173 +1,196 @@
 import { NextResponse } from 'next/server';
 import puppeteer from 'puppeteer';
+import { ResumeData, colorThemes, Experience, Education, Skill, Reference } from '@/types/resume';
+
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
-
-
   try {
-    const { html, css, filename } = await request.json();
-    
-    if (!html) {
-      return NextResponse.json({ error: 'HTML content is required' }, { status: 400 });
+    const { resumeData, activeColor, language, filename, html, css } = await request.json();
+
+    if (!resumeData && !html) {
+      return NextResponse.json({ error: 'Provide either resumeData or html' }, { status: 400 });
     }
 
+    const safe = (s: string) => (s || '').replace(/[<>]/g, '');
 
-    
-    console.log('Launching browser with puppeteer');
+    let fullHtml = '';
+
+    if (html) {
+      fullHtml = `
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Resume</title>
+          <style>
+            * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 0; }
+            ${css || ''}
+          </style>
+        </head>
+        <body>
+          ${html}
+        </body>
+        </html>
+      `;
+    } else {
+      const theme = colorThemes[(activeColor as keyof typeof colorThemes) || 'blue'] || colorThemes.blue;
+      const primary = theme.primary.replace('bg-[', '').replace(']', '');
+      const secondary = theme.secondary.replace('bg-[', '').replace(']', '');
+      const textColor = theme.text.replace('text-[', '').replace(']', '');
+      const borderColor = theme.border.replace('border-[', '').replace(']', '');
+
+      const t = language === 'fr' ? {
+        professionalSummary: 'RÉSUMÉ PROFESSIONNEL',
+        experience: 'EXPÉRIENCE',
+        education: 'FORMATION',
+        skills: 'COMPÉTENCES',
+        references: 'RÉFÉRENCES',
+        keyAchievements: 'Réalisations clés :',
+        yourName: 'Votre nom',
+        yourJobTitle: 'Votre titre de poste'
+      } : {
+        professionalSummary: 'PROFESSIONAL SUMMARY',
+        experience: 'EXPERIENCE',
+        education: 'EDUCATION',
+        skills: 'SKILLS',
+        references: 'REFERENCES',
+        keyAchievements: 'Key Achievements:',
+        yourName: 'Your Name',
+        yourJobTitle: 'Your Job Title'
+      };
+
+      const contactHtml = [
+        resumeData.personalInfo.email && `<span>✉️ ${safe(resumeData.personalInfo.email)}</span>`,
+        resumeData.personalInfo.phone && `<span>📱 ${safe(resumeData.personalInfo.phone)}</span>`,
+        resumeData.personalInfo.location && `<span>📍 ${safe(resumeData.personalInfo.location)}</span>`,
+        resumeData.personalInfo.website && `<span>🔗 ${safe(resumeData.personalInfo.website)}</span>`
+      ].filter(Boolean).join(' • ');
+
+      const experiencesHtml = (resumeData.experiences || []).map((exp: Experience) => {
+        const achievementsHtml = (exp.achievements || [])
+          .filter((a: string) => a && a.trim())
+          .map((a: string) => `<li>${safe(a)}</li>`)
+          .join('');
+        return `
+          <div style="margin-bottom: 10px;">
+            <div style="font-weight: 600;">${safe(exp.position)}${exp.company ? `, ${safe(exp.company)}` : ''}</div>
+            <div style="font-size: 12px; color: #555;">${safe(exp.startDate)}${exp.endDate ? ` - ${safe(exp.endDate)}` : ''}</div>
+            ${exp.description ? `<div style="margin-top: 4px;">${safe(exp.description)}</div>` : ''}
+            ${achievementsHtml ? `<ul style="padding-left: 16px; margin-top: 4px;">${achievementsHtml}</ul>` : ''}
+          </div>
+        `;
+      }).join('');
+
+      const educationHtml = (resumeData.education || []).map((ed: Education) => `
+        <div style="margin-bottom: 10px;">
+          <div style="font-weight: 600;">${safe(ed.degree)}${ed.field ? `, ${safe(ed.field)}` : ''}</div>
+          <div style="font-size: 12px; color: #555;">${safe(ed.institution)}</div>
+          <div style="font-size: 12px; color: #555;">${safe(ed.startDate)}${ed.endDate ? ` - ${safe(ed.endDate)}` : ''}</div>
+          ${ed.description ? `<div style="margin-top: 4px;">${safe(ed.description)}</div>` : ''}
+        </div>
+      `).join('');
+
+      const skillsHtml = (resumeData.skills || []).map((sk: Skill) => `
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span>${safe(sk.name)}</span>
+          <div style="height: 6px; background: #eee; flex: 1; border-radius: 3px; overflow: hidden;">
+            <div style="width: ${(Math.max(0, Math.min(5, sk.level)) / 5) * 100}%; height: 100%; background: ${primary};"></div>
+          </div>
+        </div>
+      `).join('');
+
+      const referencesHtml = (resumeData.references || []).map((ref: Reference) => `
+        <div style="margin-bottom: 10px;">
+          <div style="font-weight: 600;">${safe(ref.name)}${ref.position ? `, ${safe(ref.position)}` : ''}</div>
+          ${ref.company ? `<div style="font-size: 12px; color: #555;">${safe(ref.company)}</div>` : ''}
+          ${ref.email ? `<div style="font-size: 12px; color: #555;">${safe(ref.email)}</div>` : ''}
+          ${ref.phone ? `<div style="font-size: 12px; color: #555;">${safe(ref.phone)}</div>` : ''}
+        </div>
+      `).join('');
+
+      const photoHtml = resumeData.personalInfo.photo ? `
+        <img src="${resumeData.personalInfo.photo}" alt="Photo" style="width:64px;height:64px;border-radius:9999px;border:2px solid #fff;object-fit:cover;background:#eee;" />
+      ` : '';
+
+      fullHtml = `
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Resume</title>
+          <style>
+            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 0; color: #111; }
+            .page { width: 794px; min-height: 1123px; box-sizing: border-box; padding: 20px; }
+            .header { background: ${secondary}; padding: 16px; display: flex; gap: 16px; align-items: center; }
+            .name { font-size: 22px; font-weight: 700; margin: 0; }
+            .title { font-size: 16px; margin: 2px 0 0 0; color: ${textColor}; }
+            .contact { margin-top: 8px; font-size: 12px; color: #333; }
+            .section { margin-top: 12px; }
+            .section-title { font-size: 14px; font-weight: 600; padding-bottom: 4px; border-bottom: 1px solid ${borderColor}; }
+            .content { margin-top: 6px; font-size: 13px; line-height: 1.5; }
+          </style>
+        </head>
+        <body>
+          <div class="page">
+            <div class="header">
+              ${photoHtml}
+              <div>
+                <h1 class="name">${safe(resumeData.personalInfo.name) || t.yourName}</h1>
+                <div class="title">${safe(resumeData.personalInfo.title) || t.yourJobTitle}</div>
+                ${contactHtml ? `<div class="contact">${contactHtml}</div>` : ''}
+              </div>
+            </div>
+            <div class="section">
+              ${resumeData.personalInfo.summary ? `<div class="section-title">${t.professionalSummary}</div>` : ''}
+              ${resumeData.personalInfo.summary ? `<div class="content">${safe(resumeData.personalInfo.summary)}</div>` : ''}
+            </div>
+            ${experiencesHtml ? `<div class="section"><div class="section-title">${t.experience}</div><div class="content">${experiencesHtml}</div></div>` : ''}
+            ${educationHtml ? `<div class="section"><div class="section-title">${t.education}</div><div class="content">${educationHtml}</div></div>` : ''}
+            ${skillsHtml ? `<div class="section"><div class="section-title">${t.skills}</div><div class="content" style="display: grid; gap: 6px;">${skillsHtml}</div></div>` : ''}
+            ${referencesHtml ? `<div class="section"><div class="section-title">${t.references}</div><div class="content">${referencesHtml}</div></div>` : ''}
+          </div>
+        </body>
+        </html>
+      `;
+    }
+
     const browser = await puppeteer.launch({
       headless: true,
       args: [
         '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage'
+        '--disable-setuid-sandbox'
       ]
     });
-    console.log('Browser launched successfully');
 
     const page = await browser.newPage();
-    
-    await page.setViewport({
-      width: 794,
-      height: 1123,
-      deviceScaleFactor: 2
-    });
+    await page.setViewport({ width: 794, height: 1123, deviceScaleFactor: 2 });
+    await page.setContent(fullHtml, { waitUntil: ['networkidle0', 'domcontentloaded'] });
 
-    // HTML document with embedded CSS
-    const fullHtml = `
-      <!DOCTYPE html>
-      <html lang="en">
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Resume</title>
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-        
-        <style>
-          * {
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-            text-rendering: optimizeLegibility;
-            font-feature-settings: "liga", "kern";
-          }
-          
-          body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background: white;
-            color: #000;
-            font-size: 14px;
-            line-height: 1.5;
-          }
-          
-          .border.rounded-lg {
-            border: none !important;
-            border-radius: 0 !important;
-            margin: 0 !important;
-            max-width: none !important;
-            width: 100% !important;
-            padding: 0 !important;
-          }
-          
-          #resume-preview {
-            margin: 0 !important;
-            padding: 20px !important;
-            width: 100% !important;
-            max-width: none !important;
-            box-sizing: border-box !important;
-          }
-          
-          .max-w-4xl {
-            max-width: none !important;
-            margin: 0 !important;
-            padding: 0 !important;
-          }
-          
-          .mx-auto {
-            margin-left: 0 !important;
-            margin-right: 0 !important;
-          }
-          
-          ul.list-disc {
-            list-style-type: disc !important;
-            list-style-position: outside !important;
-            padding-left: 1.2rem !important;
-            margin-left: 0.5rem !important;
-            margin-top: 0.25rem !important;
-            margin-bottom: 0.25rem !important;
-          }
-          
-          ul.list-disc li {
-            line-height: 1.4 !important;
-            margin-bottom: 0.125rem !important;
-            display: list-item !important;
-            padding-left: 0 !important;
-            list-style-type: disc !important;
-          }
-          
-          .mt-1 { margin-top: 0.25rem !important; }
-          .pl-4 { padding-left: 1rem !important; }
-          .ml-2 { margin-left: 0.5rem !important; }
-          .leading-relaxed { line-height: 1.625 !important; }
-          .text-xs { font-size: 0.75rem !important; line-height: 1rem !important; }
-          .font-medium { font-weight: 500 !important; }
-          .flex { display: flex !important; }
-          .grid { display: grid !important; }
-          .md\\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
-          .items-center { align-items: center !important; }
-          .justify-between { justify-content: space-between !important; }
-          .flex-wrap { flex-wrap: wrap !important; }
-          .gap-4 { gap: 1rem !important; }
-          .gap-2 { gap: 0.5rem !important; }
-          
-          * {
-            visibility: visible !important;
-            opacity: 1 !important;
-          }
-          
-          ${css || ''}
-        </style>
-      </head>
-      <body>
-        ${html}
-      </body>
-      </html>
-    `;
-
-    await page.setContent(fullHtml, {
-      waitUntil: ['networkidle0', 'domcontentloaded']
-    });
-    
-    await page.evaluateHandle('document.fonts.ready');
-    
-    // PDF Settings
-    const pdfBuffer = await page.pdf({
+    const pdfData = await page.pdf({
       format: 'A4',
       printBackground: true,
-      margin: {
-        top: '0in',
-        right: '0in',
-        bottom: '0in',
-        left: '0in'
-      },
+      margin: { top: '0in', right: '0in', bottom: '0in', left: '0in' },
       preferCSSPageSize: true,
       displayHeaderFooter: false
     });
 
     await browser.close();
 
+    const pdfBuffer = Buffer.from(pdfData);
     return new NextResponse(pdfBuffer, {
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': `attachment; filename="${filename || 'resume.pdf'}"`
       }
     });
-
   } catch (error) {
-    console.error('Error generating PDF:', error);
-    return NextResponse.json(
-      { error: 'Failed to generate PDF' },
-      { status: 500 }
-    );
+    const message = (error && typeof error === 'object' && 'message' in error) ? (error as any).message : String(error);
+    console.error('Error generating PDF:', message);
+    return NextResponse.json({ error: 'Failed to generate PDF', message }, { status: 500 });
   }
 }
