@@ -505,7 +505,7 @@ export default function ResumePreview({ resumeData, activeColor, language }: Res
                   <div key={edu.id} className="mb-3">
                     <div className="flex justify-between items-start">
                       <div>
-                        <h3 className="font-medium text-sm">{edu.degree} {edu.field ? `${t.in} ${edu.field}` : ''}</h3>
+                        <h3 className="font-medium text-sm">{edu.degree} {edu.field ? edu.field : ''}</h3>
                         <p className="text-xs">{edu.institution || t.institution}</p>
                       </div>
                       <p className="text-xs" style={{color: '#4b5563'}}>
